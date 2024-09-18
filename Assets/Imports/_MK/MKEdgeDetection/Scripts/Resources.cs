@@ -1,0 +1,39 @@
+/*****************************************************
+Copyright © 2024 Michael Kremmel
+https://www.michaelkremmel.de
+All rights reserved
+*****************************************************/
+
+using UnityEngine;
+
+namespace MK.EdgeDetection
+{
+    [System.Serializable]
+    public class Resources : ScriptableObject
+    {
+        [SerializeField]
+        private UnityEngine.Shader _shaderMain;
+        internal UnityEngine.Shader shaderMain { get { return _shaderMain; } }
+        [SerializeField]
+        private UnityEngine.Shader _shaderURPCopy;
+        internal UnityEngine.Shader shaderURPCopy { get { return _shaderURPCopy; } }
+
+        /*
+        #if UNITY_EDITOR
+        [UnityEditor.MenuItem("Window/MK/Edge Detection/Create Resources Asset")]
+        static void CreateAsset()
+        {
+            Resources asset = ScriptableObject.CreateInstance<Resources>();
+
+            UnityEditor.AssetDatabase.CreateAsset(asset, "Assets/_MK/MKEdgeDetection/Resources.asset");
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+
+            UnityEditor.EditorUtility.FocusProjectWindow();
+
+            UnityEditor.Selection.activeObject = asset;
+        }
+        #endif
+        */
+    }
+}
