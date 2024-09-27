@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,9 +7,8 @@ public class DijkstraMovement : MonoBehaviour
     public NavMeshAgent agent;
     public Transform target;
     public float speed = 5f;
-    public float rotationSpeed = 10f;
-
-    private Vector3 previousPosition;
+    public float centeringForce = 1f;
+    private Vector3 currentDirection;
 
     void Start()
     {
@@ -18,15 +16,14 @@ public class DijkstraMovement : MonoBehaviour
         agent.speed = speed;
         agent.updateRotation = false;
         SetDestination(target.position);
-        previousPosition = transform.position;
-
-        transform.rotation = Quaternion.Euler(0, 0, 0);
+        currentDirection = Vector3.right; // Assuming initial movement along the X-axis; adjust as needed
     }
 
     void Update()
     {
-        MoveAlongNavMeshPath();
-        HandleTurn();
+        MoveForward();
+        DetectTurns();
+        CenterOnPath();
     }
 
     void SetDestination(Vector3 destination)
@@ -34,49 +31,59 @@ public class DijkstraMovement : MonoBehaviour
         agent.SetDestination(destination);
     }
 
-    void MoveAlongNavMeshPath()
+    void MoveForward()
     {
-        agent.Move(transform.forward * speed * Time.deltaTime);
+        transform.position += currentDirection * speed * Time.deltaTime;
     }
 
-    void HandleTurn()
+    void DetectTurns()
     {
-        Vector3 movementDirection = (transform.position - previousPosition).normalized;
-        float directionChange = Vector3.Dot(movementDirection, transform.forward);
-
-        if (directionChange < 0.99f)
+        if (agent.hasPath && agent.path.corners.Length > 1)
         {
-            Vector3 nextDirection = agent.steeringTarget - transform.position;
-            SnapToCardinalDirection(nextDirection);
-        }
+            Vector3 directionToNextCorner = agent.path.corners[1] - transform.position;
+            float angleToNextCorner = Vector3.Angle(currentDirection, directionToNextCorner);
 
-        previousPosition = transform.position;
+            if (angleToNextCorner > 45f) // Adjust the threshold if needed for earlier or sharper turns
+            {
+                RotateToNextDirection(directionToNextCorner);
+            }
+        }
     }
 
-    void SnapToCardinalDirection(Vector3 direction)
+    void RotateToNextDirection(Vector3 direction)
     {
         direction.y = 0;
-
         float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
-        float snappedAngle = 0;
-
-        if (targetAngle >= -45 && targetAngle < 45)
-        {
-            snappedAngle = 0;
-        }
-        else if (targetAngle >= 45 && targetAngle < 135)
-        {
-            snappedAngle = 90;
-        }
-        else if (targetAngle >= 135 || targetAngle < -135)
-        {
-            snappedAngle = 180;
-        }
-        else if (targetAngle >= -135 && targetAngle < -45)
-        {
-            snappedAngle = 270;
-        }
-
+        float snappedAngle = Mathf.Round(targetAngle / 90f) * 90f;
         transform.rotation = Quaternion.Euler(0, snappedAngle, 0);
+
+        // Update current direction based on the snapped angle
+        if (snappedAngle == 0)
+            currentDirection = Vector3.forward;
+        else if (snappedAngle == 90)
+            currentDirection = Vector3.right;
+        else if (snappedAngle == 180 || snappedAngle == -180)
+            currentDirection = Vector3.back;
+        else if (snappedAngle == -90 || snappedAngle == 270)
+            currentDirection = Vector3.left;
+    }
+
+    void CenterOnPath()
+    {
+        if (agent.hasPath && agent.path.corners.Length > 1)
+        {
+            Vector3 pathStart = agent.path.corners[0];
+            Vector3 pathEnd = agent.path.corners[1];
+            Vector3 pathDirection = (pathEnd - pathStart).normalized;
+
+            // Project the current position onto the line defined by the path segment
+            Vector3 projectedPoint = Vector3.Project(transform.position - pathStart, pathDirection) + pathStart;
+
+            // Calculate how far off-center the monster is from the ideal path
+            Vector3 offset = transform.position - projectedPoint;
+
+            // Correct the position by moving towards the projected point
+            transform.position -= offset * centeringForce * Time.deltaTime;
+        }
     }
 }
