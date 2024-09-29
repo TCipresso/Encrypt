@@ -5,7 +5,7 @@ using UnityEngine.AI;
 public class DijkstraMovement : MonoBehaviour
 {
     public NavMeshAgent agent;
-    public Transform target;
+    public Transform target; // This should be the player's transform
     public float speed = 5f;
     public float centeringForce = 1f;
     private Vector3 currentDirection;
@@ -15,12 +15,14 @@ public class DijkstraMovement : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         agent.speed = speed;
         agent.updateRotation = false;
-        SetDestination(target.position);
         currentDirection = Vector3.right; // Assuming initial movement along the X-axis; adjust as needed
     }
 
     void Update()
     {
+        // Continuously set the player's current position as the destination
+        SetDestination(target.position);
+
         MoveForward();
         DetectTurns();
         CenterOnPath();
