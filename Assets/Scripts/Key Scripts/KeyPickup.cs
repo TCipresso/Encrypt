@@ -8,7 +8,8 @@ public class KeyPickup : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // add count logic here.
+            // Access GameManager and increment key count
+            GameManager.instance.CollectKey();
             Destroy(gameObject);
         }
     }
