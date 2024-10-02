@@ -6,13 +6,19 @@ public class FootstepAudio : MonoBehaviour
     public AudioClip walkClip;
     public AudioClip runClip;
     private bool isMoving;
+    private bool isRunning;
 
     void Update()
     {
+        bool currentIsRunning = Input.GetKey(KeyCode.LeftShift);
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
         {
-            isMoving = true;
-            PlayFootstep(Input.GetKey(KeyCode.LeftShift) ? runClip : walkClip);
+            if (!isMoving || currentIsRunning != isRunning)
+            {
+                isMoving = true;
+                isRunning = currentIsRunning;
+                PlayFootstep(isRunning ? runClip : walkClip);
+            }
         }
         else if (isMoving)
         {
@@ -23,11 +29,8 @@ public class FootstepAudio : MonoBehaviour
 
     private void PlayFootstep(AudioClip clip)
     {
-        if (!audioSource.isPlaying)
-        {
-            audioSource.clip = clip;
-            audioSource.Play();
-        }
+        audioSource.clip = clip;
+        audioSource.Play();
     }
 
     private void StopFootsteps()
