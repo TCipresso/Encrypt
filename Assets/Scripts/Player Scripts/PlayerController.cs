@@ -14,8 +14,25 @@ public class PlayerController : MonoBehaviour
     public float lookXLimit = 45f;
     public bool CanLook = true;
 
+    public AudioSource walk;
+    public AudioSource run;
+
+    // Head bobbing variables
+    public float bobbingSpeed = 14f;
+    public float runBobbingSpeed = 20f;
+    public float walkBobbingAmount = 0.05f;
+    public float runBobbingAmount = 0.1f;
+
+    [Range(0f, 1f)]
+    public float flashlightBobbingFactor = 0.5f;
+
+    private float defaultPosY = 0;
+    private float cameraYOffset = 0;
+    private float timer = 0;
+
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
+    private Vector3 originalCameraPosition;
 
     public bool canMove = true;
     private CharacterController characterController;
@@ -34,6 +51,11 @@ public class PlayerController : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        originalCameraPosition = playerCamera.transform.localPosition;
+        defaultPosY = playerCamera.transform.localPosition.y;
+        DataBreach.SetActive(true);
+        Override.SetActive(false);
+        Untraceable.SetActive(false);
     }
 
     void Update()
@@ -61,6 +83,35 @@ public class PlayerController : MonoBehaviour
         // Spell Cycling
         if (Input.GetKeyDown(KeyCode.Q)) ChangeSpell(-1);  // Previous spell
         else if (Input.GetKeyDown(KeyCode.E)) ChangeSpell(1);  // Next spell
+
+        // Head Bobbing
+        float waveslice = 0.0f;
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        float currentBobbingSpeed = isRunning ? runBobbingSpeed : bobbingSpeed;
+        float currentBobbingAmount = isRunning ? runBobbingAmount : walkBobbingAmount;
+
+        if (Mathf.Abs(horizontal) == 0 && Mathf.Abs(vertical) == 0) timer = 0.0f;
+        else
+        {
+            waveslice = Mathf.Sin(timer);
+            timer += currentBobbingSpeed * Time.deltaTime;
+            if (timer > Mathf.PI * 2) timer -= Mathf.PI * 2;
+        }
+
+        if (waveslice != 0)
+        {
+            float translateChange = waveslice * currentBobbingAmount;
+            float totalAxes = Mathf.Abs(horizontal) + Mathf.Abs(vertical);
+            totalAxes = Mathf.Clamp(totalAxes, 0.0f, 1.0f);
+            translateChange = totalAxes * translateChange;
+            float modifiedTranslateChange = translateChange * flashlightBobbingFactor;
+            playerCamera.transform.localPosition = new Vector3(playerCamera.transform.localPosition.x, defaultPosY + cameraYOffset + modifiedTranslateChange, playerCamera.transform.localPosition.z);
+        }
+        else
+        {
+            playerCamera.transform.localPosition = new Vector3(playerCamera.transform.localPosition.x, defaultPosY + cameraYOffset, playerCamera.transform.localPosition.z);
+        }
 
         // Animator parameters
         bool isWalking = moveDirection.magnitude > 0 && !isRunning;
