@@ -5,13 +5,13 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-
-    private int keyCount = 0; // Number of keys the player has collected
-    public int keysToWin = 3; // Set this to the number of keys required to win
+    private int keyCount = 0;
+    public int keysToWin = 3;
+    public AudioClip KeyPickUp;
+    private AudioSource audioSource;
 
     private void Awake()
     {
-        // Singleton pattern to ensure there is only one GameManager
         if (instance == null)
         {
             instance = this;
@@ -22,20 +22,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Called when a key is collected
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
     public void CollectKey()
     {
         keyCount++;
         Debug.Log("Key Collected! Total keys: " + keyCount);
+        audioSource.PlayOneShot(KeyPickUp);
 
-        // Check if the player has collected enough keys to win
         if (keyCount >= keysToWin)
         {
             WinGame();
         }
     }
 
-    // Function to display win message
     private void WinGame()
     {
         Debug.Log("YOU WON!");
