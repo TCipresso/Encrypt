@@ -6,6 +6,7 @@ TagManager:
   tags:
   - SearchPoint
   - Fireball
+  - Monster
   layers:
   - Default
   - TransparentFX
