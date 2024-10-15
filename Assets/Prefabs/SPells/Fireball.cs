@@ -15,10 +15,18 @@ public class Fireball : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Destroy(gameObject);
+        Debug.Log("Fireball collided with: " + collision.gameObject.tag);
+
         if (collision.gameObject.CompareTag("Enemy"))
         {
             Debug.Log("Fireball hit an enemy!");
         }
+        else if (collision.gameObject.CompareTag("Player"))
+        {
+            // Ignores Player
+            return;
+        }
+
+        Destroy(gameObject);
     }
 }

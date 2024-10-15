@@ -9,12 +9,21 @@ public class SpellSystem : MonoBehaviour
     public GameObject fireballPrefab;
 
     public PlayerController playerController;
-    public Camera playerCamera; // Reference to the camera for zooming effect
+    public Camera playerCamera;
+
+    public int maxSpellSlots = 3; // Total number of spell slots
+    public int currentSpellSlots;
 
     private float holdTime = 0f;
     private float castDelay = 0.5f;
 
     private bool hasteActive = false;
+
+    void Start()
+    {
+        currentSpellSlots = maxSpellSlots; // Initialize spell slots
+        Debug.Log("Spell Slots Available: " + currentSpellSlots);
+    }
 
     void Update()
     {
@@ -31,10 +40,14 @@ public class SpellSystem : MonoBehaviour
         {
             holdTime += Time.deltaTime;
 
-            if (holdTime >= castDelay)
+            if (holdTime >= castDelay && currentSpellSlots > 0)
             {
                 CastSpell();
                 holdTime = 0f;
+            }
+            else if (currentSpellSlots <= 0)
+            {
+                Debug.Log("No spell slots available!");
             }
         }
         else
@@ -52,31 +65,41 @@ public class SpellSystem : MonoBehaviour
 
     void CastSpell()
     {
-        switch (currentSpell)
+        if (currentSpellSlots > 0)
         {
-            case Spell.Fireball:
-                HandleFireball();
-                break;
-            case Spell.Haste:
-                if (!hasteActive)
-                {
-                    HandleHaste();
-                }
-                else
-                {
-                    Debug.Log("Haste is already active. Cannot cast again.");
-                }
-                break;
-            case Spell.Truesight:
-                HandleTruesight();
-                break;
+            currentSpellSlots--; // Consume a spell slot
+            Debug.Log("Casting " + currentSpell + ". Slots remaining: " + currentSpellSlots);
+
+            switch (currentSpell)
+            {
+                case Spell.Fireball:
+                    HandleFireball();
+                    break;
+                case Spell.Haste:
+                    if (!hasteActive)
+                    {
+                        HandleHaste();
+                    }
+                    else
+                    {
+                        Debug.Log("Haste is already active. Cannot cast again.");
+                    }
+                    break;
+                case Spell.Truesight:
+                    HandleTruesight();
+                    break;
+            }
+        }
+        else
+        {
+            Debug.Log("No spell slots available!");
         }
     }
 
     void HandleFireball()
     {
         Debug.Log("Casting Fireball...");
-        GameObject fireball = Instantiate(fireballPrefab, transform.position + transform.forward, transform.rotation);
+        Instantiate(fireballPrefab, transform.position + transform.forward, transform.rotation);
     }
 
     void HandleHaste()
@@ -93,7 +116,9 @@ public class SpellSystem : MonoBehaviour
         float originalRunSpeed = playerController.runSpeed;
         playerController.walkSpeed = 10f;
         playerController.runSpeed = 18f;
+
         yield return new WaitForSeconds(10f);
+
         playerController.walkSpeed = originalWalkSpeed;
         playerController.runSpeed = originalRunSpeed;
 
