@@ -10,9 +10,10 @@ public class DijkstraRoute : MonoBehaviour
     public List<Transform> routePoints; // List of waypoints
     public float speed = 3f; // Movement speed
     public float turnSpeed = 5f; // Turning speed
+    public float stopDuration = 2f; // Delay duration for Stop state
 
     private int currentPointIndex = 0; // Current waypoint index
-    private bool isStateTransitioning = false; // To prevent overlapping state changes
+    private bool isStateTransitioning = false; // Prevent overlapping transitions
 
     void Start()
     {
@@ -55,18 +56,33 @@ public class DijkstraRoute : MonoBehaviour
         }
     }
 
-    // State: Stop - Briefly stops at the waypoint
+    // State: Stop - Briefly stops with a delay before turning
     void StopState()
     {
-        if (isStateTransitioning) return; // Prevent multiple triggers
+        if (!isStateTransitioning)
+        {
+            StartCoroutine(StopDelayCoroutine());
+        }
+    }
 
+    // Coroutine for Stop state delay
+    IEnumerator StopDelayCoroutine()
+    {
         isStateTransitioning = true;
-        DisableCurrentPoint(); // Disable the current waypoint
 
-        // Go to the next waypoint and switch to Turn state
+        // Disable the current waypoint
+        DisableCurrentPoint();
+
+        // Wait for the specified stop duration
+        yield return new WaitForSeconds(stopDuration);
+
+        // Move to the next waypoint
         currentPointIndex = (currentPointIndex + 1) % routePoints.Count;
         EnableCurrentPoint(); // Enable the next waypoint
 
+        isStateTransitioning = false;
+
+        // Switch to Turn state
         SwitchState(MonsterState.Turn);
     }
 
