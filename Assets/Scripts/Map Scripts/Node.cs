@@ -1,34 +1,30 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Node : MonoBehaviour
+public class Node
 {
-    public int gridX; // X coordinate of the node in the grid
-    public int gridY; // Y coordinate of the node in the grid
-    public bool isWall; // Determines if the node is currently a wall
+    public bool walkable;
+    public Vector3 worldPosition;
+    public int gridX;
+    public int gridY;
+    public int gCost;
+    public int hCost;
+    public Node parent;
 
-    // Method to set the node as a wall or floor
-    public void SetAsWall(bool wallState)
+    public Node(bool _walkable, Vector3 _worldPos, int _gridX, int _gridY)
     {
-        isWall = wallState;
-        UpdateNodeAppearance();
+        walkable = _walkable;
+        worldPosition = _worldPos;
+        gridX = _gridX;
+        gridY = _gridY;
     }
 
-    // Optional: Change appearance based on the state (wall/floor)
-    private void UpdateNodeAppearance()
+    public int fCost
     {
-        if (isWall)
+        get
         {
-            transform.position = new Vector3(transform.position.x, 10, transform.position.z); // Example: Raise the node to act as a wall
+            return gCost + hCost;
         }
-        else
-        {
-            transform.position = new Vector3(transform.position.x, 0, transform.position.z); // Example: Lower the node to act as a floor
-        }
-    }
-
-    // Method to get the coordinates of the node
-    public Vector2Int GetCoordinates()
-    {
-        return new Vector2Int(gridX, gridY);
     }
 }
